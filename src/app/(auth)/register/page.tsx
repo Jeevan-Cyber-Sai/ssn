@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import { Input, Select } from '@/components/ui/index'
 import { DEPARTMENTS, YEARS, APP_NAME, ALLOWED_DOMAINS, NSS_DESCRIPTION, YRC_DESCRIPTION } from '@/lib/constants'
-import { createProfileBypassRLS } from './actions'
+import { registerAdminBypassProfile } from './actions'
 
 function RegisterForm() {
   const searchParams = useSearchParams()
@@ -69,18 +69,8 @@ function RegisterForm() {
       return
     }
 
-    const { data: authData, error: signUpErr } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    })
-
-    if (signUpErr) { setError(signUpErr.message); setLoading(false); return }
-    if (!authData.user) { setError('Registration failed. Try again.'); setLoading(false); return }
-
     try {
-      await createProfileBypassRLS({
-        id: authData.user.id,
+      await registerAdminBypassProfile({
         name: form.name.trim(),
         email: form.email,
         department: form.department,
@@ -90,9 +80,20 @@ function RegisterForm() {
         org: form.org,
         org_locked: true,
         role: 'student',
-      })
-    } catch (profileErr: any) {
-      setError(profileErr.message)
+      }, form.password)
+    } catch (err: any) {
+      setError(err.message)
+      setLoading(false)
+      return
+    }
+
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.password
+    })
+
+    if (signInErr) {
+      setError('Account created securely, but automatic sign-in failed. Please log in manually.')
       setLoading(false)
       return
     }
