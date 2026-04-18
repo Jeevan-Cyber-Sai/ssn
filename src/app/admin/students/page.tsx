@@ -14,6 +14,7 @@ export default async function AdminStudentsPage() {
     .from('profiles')
     .select('*')
     .eq('role', 'student')
+    .eq('org', profile.org)
     .order('created_at', { ascending: false })
 
   return <AdminStudentsClient profile={profile as Profile} students={students || []} />

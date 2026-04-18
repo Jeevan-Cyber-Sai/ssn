@@ -32,10 +32,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const protectedRoutes = ['/dashboard', '/events', '/profile', '/certificates', '/leaderboard', '/admin']
-  const authRoutes = ['/login', '/register', '/admin-login']
+  const authRoutes = ['/login', '/register']
 
-  const isProtected = protectedRoutes.some(r => pathname.startsWith(r))
-  const isAuthRoute = authRoutes.some(r => pathname.startsWith(r))
+  const isProtected = protectedRoutes.some(r => pathname === r || pathname.startsWith(r + '/'))
+  const isAuthRoute = authRoutes.some(r => pathname === r || pathname.startsWith(r + '/'))
 
   if (!user && isProtected) {
     return NextResponse.redirect(new URL('/login', request.url))

@@ -170,9 +170,10 @@ export function useNotifications() {
 
   useEffect(() => {
     fetchNotifications()
-    // Real-time subscription
+    // Real-time subscription - Use unique channel name to avoid React Strict Mode active-subscription collisions
+    const channelName = `notifications-${Date.now()}-${Math.random()}`
     const channel = supabase
-      .channel('notifications')
+      .channel(channelName)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => {
         fetchNotifications()
       })

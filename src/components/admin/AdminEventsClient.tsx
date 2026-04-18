@@ -23,12 +23,11 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
-  const [filter, setFilter] = useState<'ALL' | 'NSS' | 'YRC'>('ALL')
   const supabase = createClient()
 
   const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }))
 
-  const openCreate = () => { setForm(emptyForm); setEditTarget(null); setModal('create') }
+  const openCreate = () => { setForm({ ...emptyForm, event_type: profile.org }); setEditTarget(null); setModal('create') }
   const openEdit = (ev: Event) => {
     setEditTarget(ev)
     setForm({
@@ -46,7 +45,8 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
 
     const payload = {
       title: form.title, description: form.description || null,
-      event_type: form.event_type, date: form.date,
+      event_type: profile.org, // strictly locking to admin org
+      date: form.date,
       end_date: form.end_date || null, location: form.location || null,
       seats: parseInt(form.seats) || 50, hours: parseFloat(form.hours) || 0,
     }
@@ -77,30 +77,19 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
     setDeleting(null)
   }
 
-  const filtered = filter === 'ALL' ? events : events.filter(e => e.event_type === filter)
-
   return (
     <div className="flex-1 flex flex-col">
-      <TopBar profile={profile} title="Manage Events" />
+      <TopBar profile={profile} title={`Manage ${profile.org} Events`} />
       <main className="flex-1 px-4 md:px-6 py-6 space-y-6">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold font-display">Events</h2>
-            <p className="text-sm text-gray-500">{events.length} total events</p>
+            <h2 className="text-xl font-bold font-display">{profile.org} Events</h2>
+            <p className="text-sm text-gray-500">{events.length} total active events</p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Filter */}
-            <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
-              {(['ALL', 'NSS', 'YRC'] as const).map(f => (
-                <button key={f} onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                    filter === f ? 'bg-white dark:bg-gray-900 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500'
-                  }`}>{f}</button>
-              ))}
-            </div>
-            <Button variant="nss" size="sm" onClick={openCreate}>
+            <Button variant={profile.org.toLowerCase() as any} size="sm" onClick={openCreate}>
               <Plus className="h-4 w-4" /> Create Event
             </Button>
           </div>
@@ -108,7 +97,7 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
 
         {/* Events table */}
         <Card className="overflow-hidden">
-          {filtered.length === 0 ? (
+          {events.length === 0 ? (
             <div className="p-10 text-center text-gray-400">
               <CalendarDays className="h-8 w-8 mx-auto mb-2 opacity-40" />
               <p className="text-sm">No events found</p>
@@ -126,7 +115,7 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-800/60">
-                  {filtered.map(ev => (
+                  {events.map(ev => (
                     <tr key={ev.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors">
                       <td className="px-5 py-3.5">
                         <p className="font-semibold text-gray-900 dark:text-white">{ev.title}</p>
@@ -185,17 +174,13 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
               <div className="p-6 space-y-4">
                 <Input label="Event Title *" value={form.title} onChange={e => set('title', e.target.value)} placeholder="Tree Plantation Drive" />
                 <Textarea label="Description" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Event details..." rows={3} />
-                <Select label="Organisation *" value={form.event_type} onChange={e => set('event_type', e.target.value)}>
-                  <option value="NSS">NSS</option>
-                  <option value="YRC">YRC</option>
-                </Select>
                 <div className="grid grid-cols-2 gap-3">
                   <Input label="Start Date & Time *" type="datetime-local" value={form.date} onChange={e => set('date', e.target.value)} />
                   <Input label="End Date & Time" type="datetime-local" value={form.end_date} onChange={e => set('end_date', e.target.value)} />
                 </div>
                 <Input label="Location" value={form.location} onChange={e => set('location', e.target.value)} placeholder="Main Auditorium, SSN" />
                 <div className="grid grid-cols-2 gap-3">
-                  <Input label="Total Seats" type="number" value={form.seats} onChange={e => set('seats', e.target.value)} min="1" />
+                  <Input label="Max No. of Students *" type="number" value={form.seats} onChange={e => set('seats', e.target.value)} min="1" />
                   <Input label="Volunteer Hours" type="number" step="0.5" value={form.hours} onChange={e => set('hours', e.target.value)} min="0" />
                 </div>
 

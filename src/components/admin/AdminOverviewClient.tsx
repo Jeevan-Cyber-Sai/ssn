@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Users, CalendarDays, ArrowRight, Shield, UserCheck } from 'lucide-react'
 import TopBar from '@/components/shared/TopBar'
 import { Card, Badge, StatCard } from '@/components/ui/index'
-import { formatDate } from '@/lib/utils'
+import { orgGradient, cn } from '@/lib/utils'
 import type { Profile } from '@/types/database'
 
 const stagger = {
@@ -14,38 +14,39 @@ const stagger = {
 
 export default function AdminOverviewClient({ profile, stats, recentRegistrations }: {
   profile: Profile
-  stats: { nssStudents: number; yrcStudents: number; nssEvents: number; yrcEvents: number }
+  stats: { totalStudents: number; totalEvents: number; upcomingEvents: number }
   recentRegistrations: any[]
 }) {
   const quickLinks = [
-    { href: '/admin/events', icon: CalendarDays, label: 'Manage Events', desc: 'Create, edit, delete events for NSS & YRC' },
-    { href: '/admin/students', icon: Users, label: 'View Students', desc: 'Browse all registered volunteers' },
-    { href: '/admin/attendance', icon: UserCheck, label: 'Mark Attendance', desc: 'Update event attendance status' },
+    { href: '/admin/events', icon: CalendarDays, label: 'Manage Events', desc: `Create and edit ${profile.org} events` },
+    { href: '/admin/students', icon: Users, label: 'Student Database', desc: `Manage ${profile.org} volunteers` },
+    { href: '/admin/attendance', icon: UserCheck, label: 'Mark Attendance', desc: 'Update event attendance records' },
   ]
+
+  const grad = orgGradient(profile.org)
 
   return (
     <div className="flex-1 flex flex-col">
-      <TopBar profile={profile} title="Admin Panel" />
+      <TopBar profile={profile} title={`${profile.org} Admin Dashboard`} />
       <main className="flex-1 px-4 md:px-6 py-6 space-y-6">
 
         {/* Admin banner */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-800 dark:to-gray-900 p-6 text-white">
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-10"><Shield className="h-24 w-24" /></div>
+          <div className={cn("relative overflow-hidden rounded-2xl bg-gradient-to-r p-6 text-white", grad)}>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20"><Shield className="h-32 w-32" /></div>
             <div className="relative">
-              <p className="text-white/60 text-sm mb-1">Admin Panel</p>
-              <h2 className="text-2xl font-extrabold font-display">Welcome, {profile.name.split(' ')[0]} 🛡️</h2>
-              <p className="text-white/60 text-sm mt-1">You have full administrative access to NSS &amp; YRC platform</p>
+              <p className="text-white/80 text-sm mb-1 font-bold tracking-widest uppercase">{profile.org} Administrative Portal</p>
+              <h2 className="text-3xl font-extrabold font-display">Welcome, {profile.name.split(' ')[0]} 🛡️</h2>
+              <p className="text-white/80 text-sm mt-1">You have full access to manage the {profile.org} ecosystem</p>
             </div>
           </div>
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={stagger.container} initial="hidden" animate="show" className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <motion.div variants={stagger.item}><StatCard label="NSS Students" value={stats.nssStudents} icon={<Users className="h-4 w-4" />} color="nss" /></motion.div>
-          <motion.div variants={stagger.item}><StatCard label="YRC Students" value={stats.yrcStudents} icon={<Users className="h-4 w-4" />} color="yrc" /></motion.div>
-          <motion.div variants={stagger.item}><StatCard label="NSS Events" value={stats.nssEvents} icon={<CalendarDays className="h-4 w-4" />} color="nss" /></motion.div>
-          <motion.div variants={stagger.item}><StatCard label="YRC Events" value={stats.yrcEvents} icon={<CalendarDays className="h-4 w-4" />} color="yrc" /></motion.div>
+        <motion.div variants={stagger.container} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <motion.div variants={stagger.item}><StatCard label={`Total ${profile.org} Students`} value={stats.totalStudents} icon={<Users className="h-4 w-4" />} color={profile.org.toLowerCase() as any} /></motion.div>
+          <motion.div variants={stagger.item}><StatCard label={`Active ${profile.org} Events`} value={stats.totalEvents} icon={<CalendarDays className="h-4 w-4" />} color={profile.org.toLowerCase() as any} /></motion.div>
+          <motion.div variants={stagger.item}><StatCard label="Upcoming Events" value={stats.upcomingEvents} icon={<CalendarDays className="h-4 w-4" />} color={profile.org.toLowerCase() as any} /></motion.div>
         </motion.div>
 
         {/* Quick links */}
@@ -55,13 +56,13 @@ export default function AdminOverviewClient({ profile, stats, recentRegistration
             {quickLinks.map(({ href, icon: Icon, label, desc }) => (
               <Link key={href} href={href}>
                 <Card hover className="p-5 group">
-                  <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-red-100 dark:group-hover:bg-red-900/30 group-hover:text-red-500 flex items-center justify-center mb-3 transition-colors">
+                  <div className={cn("w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center mb-3 transition-colors", profile.org === 'NSS' ? 'group-hover:bg-blue-100 group-hover:text-blue-600 dark:group-hover:bg-blue-900/30' : 'group-hover:bg-red-100 group-hover:text-red-500 dark:group-hover:bg-red-900/30')}>
                     <Icon className="h-5 w-5" />
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{label}</h4>
                   <p className="text-xs text-gray-500">{desc}</p>
-                  <div className="flex items-center gap-1 text-xs text-red-500 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    Go <ArrowRight className="h-3 w-3" />
+                  <div className={cn("flex items-center gap-1 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity font-bold", profile.org === 'NSS' ? 'text-blue-600' : 'text-red-500')}>
+                    Access <ArrowRight className="h-3 w-3" />
                   </div>
                 </Card>
               </Link>
@@ -71,7 +72,7 @@ export default function AdminOverviewClient({ profile, stats, recentRegistration
 
         {/* Recent registrations */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <h3 className="font-bold font-display mb-3">Recent Registrations</h3>
+          <h3 className="font-bold font-display mb-3">Recent {profile.org} Registrations</h3>
           <Card className="overflow-hidden">
             {recentRegistrations.length === 0 ? (
               <p className="text-sm text-gray-400 p-6 text-center">No registrations yet</p>

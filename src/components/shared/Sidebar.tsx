@@ -81,22 +81,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
           )
         })}
 
-        {isAdmin && (
-          <Link
-            href="/admin"
-            onClick={() => setMobileOpen(false)}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
-              collapsed && 'justify-center px-2',
-              pathname.startsWith('/admin')
-                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-            )}
-          >
-            <Shield className="h-4 w-4 flex-shrink-0" />
-            {!collapsed && <span>Admin Panel</span>}
-          </Link>
-        )}
+        {/* Removed Admin Panel link to strictly decouple the layers */}
       </nav>
 
       {/* User + logout */}

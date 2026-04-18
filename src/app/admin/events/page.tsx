@@ -10,7 +10,7 @@ export default async function AdminEventsPage() {
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
   if (!profile || profile.role !== 'admin') redirect('/dashboard')
 
-  const { data: events } = await supabase.from('events').select('*').order('date', { ascending: false })
+  const { data: events } = await supabase.from('events').select('*').eq('event_type', profile.org).order('date', { ascending: false })
 
   return <AdminEventsClient profile={profile as Profile} initialEvents={events || []} />
 }

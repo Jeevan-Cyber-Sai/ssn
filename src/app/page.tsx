@@ -25,6 +25,7 @@ export default function LandingPage() {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <Link href="/admin-login" className="hidden sm:block px-3 py-1.5 text-xs font-bold text-red-500 uppercase tracking-wider hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all duration-200">Admin</Link>
           <Link href="/login" className="px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-xl transition-all duration-200">Sign in</Link>
           <Link href="/register" className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 shadow-nss hover:shadow-lg focus-visible:ring-red-500 rounded-xl transition-all duration-200">Join Now <ArrowRight className="h-3.5 w-3.5" /></Link>
         </div>
@@ -119,6 +120,11 @@ export default function LandingPage() {
 
       <footer className="py-8 px-6 border-t border-gray-100 dark:border-gray-900 text-center text-sm text-gray-400">
         <p>© {new Date().getFullYear()} {APP_NAME} · SSN College &amp; SNU · Built for volunteers, by volunteers.</p>
+        <div className="mt-4">
+          <Link href="/admin-login" className="text-xs font-semibold text-gray-500 hover:text-red-500 transition-colors uppercase tracking-widest">
+            Staff / Admin Portal
+          </Link>
+        </div>
       </footer>
     </div>
   )

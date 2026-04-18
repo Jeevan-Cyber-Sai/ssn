@@ -10,22 +10,26 @@ export default async function AdminPage() {
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
   if (!profile || profile.role !== 'admin') redirect('/dashboard')
 
-  const [nssStudents, yrcStudents, nssEvents, yrcEvents, recentRegs] = await Promise.all([
-    supabase.from('profiles').select('id', { count: 'exact' }).eq('org', 'NSS').eq('role', 'student'),
-    supabase.from('profiles').select('id', { count: 'exact' }).eq('org', 'YRC').eq('role', 'student'),
-    supabase.from('events').select('id', { count: 'exact' }).eq('event_type', 'NSS').eq('is_active', true),
-    supabase.from('events').select('id', { count: 'exact' }).eq('event_type', 'YRC').eq('is_active', true),
-    supabase.from('registrations').select('*, profile:profiles(name, org), event:events(title)').order('registered_at', { ascending: false }).limit(10),
+  const [totalStudents, totalEvents, upcomingEvents, recentRegs] = await Promise.all([
+    supabase.from('profiles').select('id', { count: 'exact' }).eq('org', profile.org).eq('role', 'student'),
+    supabase.from('events').select('id', { count: 'exact' }).eq('event_type', profile.org).eq('is_active', true),
+    supabase.from('events').select('id', { count: 'exact' }).eq('event_type', profile.org).eq('is_active', true).gte('date', new Date().toISOString()),
+    // Because events belong to an org, we can just grab registrations for that org's events
+    // Supabase foreign table filtering
+    supabase.from('registrations')
+      .select('*, profile:profiles!inner(name, org), event:events!inner(title, event_type)')
+      .eq('event.event_type', profile.org)
+      .order('registered_at', { ascending: false })
+      .limit(10),
   ])
 
   return (
     <AdminOverviewClient
       profile={profile as Profile}
       stats={{
-        nssStudents: nssStudents.count || 0,
-        yrcStudents: yrcStudents.count || 0,
-        nssEvents: nssEvents.count || 0,
-        yrcEvents: yrcEvents.count || 0,
+        totalStudents: totalStudents.count || 0,
+        totalEvents: totalEvents.count || 0,
+        upcomingEvents: upcomingEvents.count || 0,
       }}
       recentRegistrations={recentRegs.data || []}
     />

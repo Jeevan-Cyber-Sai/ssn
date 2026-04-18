@@ -13,17 +13,15 @@ import type { Profile } from '@/types/database'
 export default function AdminStudentsClient({ profile, students: initial }: { profile: Profile; students: Profile[] }) {
   const [students, setStudents] = useState<Profile[]>(initial)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'ALL' | 'NSS' | 'YRC'>('ALL')
   const [promoting, setPromoting] = useState<string | null>(null)
   const supabase = createClient()
 
   const filtered = students.filter(s => {
-    const matchOrg = filter === 'ALL' || s.org === filter
     const matchSearch = !search ||
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.email.toLowerCase().includes(search.toLowerCase()) ||
       s.department.toLowerCase().includes(search.toLowerCase())
-    return matchOrg && matchSearch
+    return matchSearch
   })
 
   const handleToggleAdmin = async (student: Profile) => {
@@ -39,24 +37,14 @@ export default function AdminStudentsClient({ profile, students: initial }: { pr
 
   return (
     <div className="flex-1 flex flex-col">
-      <TopBar profile={profile} title="Students" />
+      <TopBar profile={profile} title={`${profile.org} Students`} />
       <main className="flex-1 px-4 md:px-6 py-6 space-y-6">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold font-display">Volunteers</h2>
+            <h2 className="text-xl font-bold font-display">{profile.org} Volunteers</h2>
             <p className="text-sm text-gray-500">{filtered.length} of {students.length} students</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
-              {(['ALL', 'NSS', 'YRC'] as const).map(f => (
-                <button key={f} onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    filter === f ? 'bg-white dark:bg-gray-900 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500'
-                  }`}>{f}</button>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -68,11 +56,10 @@ export default function AdminStudentsClient({ profile, students: initial }: { pr
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            { label: 'Total', value: students.length, color: 'bg-gray-100 dark:bg-gray-800 text-gray-600' },
-            { label: 'NSS', value: students.filter(s => s.org === 'NSS').length, color: 'bg-red-100 dark:bg-red-900/30 text-red-600' },
-            { label: 'YRC', value: students.filter(s => s.org === 'YRC').length, color: 'bg-red-900/10 dark:bg-red-900/20 text-red-800 dark:text-red-400' },
+            { label: `Total ${profile.org}`, value: students.length, color: 'bg-gray-100 dark:bg-gray-800 text-gray-600' },
+            { label: 'Recently Active', value: students.filter(s => s.total_hours > 0).length, color: 'bg-green-100 dark:bg-green-900/30 text-green-600' },
           ].map(({ label, value, color }) => (
             <Card key={label} className="p-4 text-center">
               <p className="text-2xl font-bold font-display">{value}</p>
