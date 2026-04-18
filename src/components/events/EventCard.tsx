@@ -140,16 +140,32 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
 
           {/* Action */}
           {!isPast && (
-            <Button
-              variant={isRegistered ? 'secondary' : event.event_type === 'NSS' ? 'nss' : 'yrc'}
-              size="sm"
-              disabled={isRegistered || isFull}
-              loading={loading}
-              onClick={handleRegister}
-              className="w-full"
-            >
-              {isRegistered ? '✓ Registered' : isFull ? 'Event Full' : 'Quick Register'}
-            </Button>
+            isRegistered ? (
+              <div className="flex flex-col gap-2">
+                <Button variant="secondary" size="sm" disabled className="w-full">
+                  ✓ Registered
+                </Button>
+                <Button 
+                  variant={event.event_type === 'NSS' ? 'nss' : 'yrc'} 
+                  size="sm" 
+                  className="w-full gap-2"
+                  onClick={(e) => { e.stopPropagation(); window.location.href = `/events/${event.id}/chat` }}
+                >
+                  <Users className="h-4 w-4" /> Group Discussion
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant={event.event_type === 'NSS' ? 'nss' : 'yrc'}
+                size="sm"
+                disabled={isFull}
+                loading={loading}
+                onClick={handleRegister}
+                className="w-full"
+              >
+                {isFull ? 'Event Full' : 'Quick Register'}
+              </Button>
+            )
           )}
         </div>
       </Card>

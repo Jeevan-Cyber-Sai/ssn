@@ -77,3 +77,20 @@ export interface LeaderboardEntry {
   events_attended: number
   events_registered: number
 }
+
+export interface EventPhoto {
+  id: string
+  event_id: string
+  storage_path: string
+  uploader_id: string
+  created_at: string
+}
+
+export interface EventMessage {
+  id: string
+  event_id: string
+  user_id: string
+  content: string
+  created_at: string
+  user?: Partial<Profile>
+}

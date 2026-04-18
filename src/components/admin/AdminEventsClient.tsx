@@ -134,11 +134,18 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => window.location.href = `/admin/events/${ev.id}/chat`}
+                            title="Group Discussion"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-600 transition-colors">
+                            <Users className="h-4 w-4" />
+                          </button>
                           <button onClick={() => openEdit(ev)}
+                            title="Edit Event"
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
                           <button onClick={() => handleDelete(ev.id)} disabled={deleting === ev.id}
+                            title="Delete Event"
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>

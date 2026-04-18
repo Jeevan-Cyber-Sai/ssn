@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, CalendarDays, Users, CheckSquare, LogOut, ChevronLeft, ChevronRight, Menu, X, Shield } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, Users, CheckSquare, LogOut, ChevronLeft, ChevronRight, Menu, X, Shield, Award, Image } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
@@ -14,6 +14,8 @@ const adminNavItems = [
   { href: '/admin/events', label: 'Manage Events', icon: CalendarDays },
   { href: '/admin/students', label: 'Student Database', icon: Users },
   { href: '/admin/attendance', label: 'Attendance', icon: CheckSquare },
+  { href: '/admin/certificates', label: 'Certificate Upload', icon: Award },
+  { href: '/admin/photos', label: 'Photos Upload', icon: Image },
 ]
 
 export default function AdminSidebar({ profile }: { profile: Profile }) {
