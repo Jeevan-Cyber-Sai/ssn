@@ -25,8 +25,8 @@ export default function LandingPage() {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link href="/login"><Button variant="ghost" size="sm">Sign in</Button></Link>
-          <Link href="/register"><Button variant="nss" size="sm">Join Now <ArrowRight className="h-3.5 w-3.5" /></Button></Link>
+          <Link href="/login" className="px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-xl transition-all duration-200">Sign in</Link>
+          <Link href="/register" className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 shadow-nss hover:shadow-lg focus-visible:ring-red-500 rounded-xl transition-all duration-200">Join Now <ArrowRight className="h-3.5 w-3.5" /></Link>
         </div>
       </nav>
 
@@ -111,8 +111,8 @@ export default function LandingPage() {
           <h2 className="text-4xl font-extrabold font-display mb-4">Ready to make a difference?</h2>
           <p className="text-gray-500 dark:text-gray-400 mb-8">Register with your college email and start your journey as a volunteer today.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/register"><Button variant="nss" size="lg">Get Started <ArrowRight className="h-4 w-4" /></Button></Link>
-            <Link href="/login"><Button variant="secondary" size="lg">Already a member?</Button></Link>
+            <Link href="/register" className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 shadow-nss hover:shadow-lg rounded-xl transition-all duration-200 w-full sm:w-auto">Get Started <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/login" className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 rounded-xl transition-all duration-200 w-full sm:w-auto">Already a member?</Link>
           </div>
         </motion.div>
       </section>
