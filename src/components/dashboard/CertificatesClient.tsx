@@ -17,6 +17,11 @@ export default function CertificatesClient({ profile, certificates }: { profile:
   const grad = orgGradient(profile.org)
 
   const handleDownload = async (cert: Certificate) => {
+    if (cert.storage_path.startsWith('http')) {
+      window.open(cert.storage_path, '_blank', 'noopener,noreferrer')
+      return;
+    }
+
     setDownloading(cert.id)
     try {
       const { data, error } = await supabase.storage.from('certificates').download(cert.storage_path)
@@ -34,9 +39,12 @@ export default function CertificatesClient({ profile, certificates }: { profile:
     setDownloading(null)
   }
 
-  const getPreviewUrl = async (cert: Certificate) => {
-    const { data } = await supabase.storage.from('certificates').createSignedUrl(cert.storage_path, 60)
-    return data?.signedUrl || null
+  const handlePreview = (cert: Certificate) => {
+    if (cert.storage_path.startsWith('http')) {
+      window.open(cert.storage_path, '_blank', 'noopener,noreferrer')
+    } else {
+      setPreview(cert)
+    }
   }
 
   return (
@@ -106,7 +114,7 @@ export default function CertificatesClient({ profile, certificates }: { profile:
                       variant="secondary"
                       size="sm"
                       className="flex-1"
-                      onClick={() => setPreview(cert)}
+                      onClick={() => handlePreview(cert)}
                     >
                       <Eye className="h-3.5 w-3.5" /> Preview
                     </Button>

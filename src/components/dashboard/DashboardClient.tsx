@@ -75,7 +75,7 @@ export default function DashboardClient({ profile, upcomingEvents, recentRegistr
                 <p className="text-xs text-gray-400 mt-1">Check back soon!</p>
               </Card>
             ) : (
-              upcomingEvents.map(event => <EventCard key={event.id} event={event} compact />)
+              upcomingEvents.map(event => <EventCard key={event.id} event={event} compact registeredIds={recentRegistrations.map(r => r.event_id)} />)
             )}
           </motion.div>
 

@@ -12,7 +12,7 @@ import type { Profile, Event } from '@/types/database'
 export default function AdminCertificatesClient({ profile, events }: { profile: Profile; events: any[] }) {
   const [selectedEventId, setSelectedEventId] = useState('')
   const [selectedUserId, setSelectedUserId] = useState('')
-  const [file, setFile] = useState<File | null>(null)
+  const [driveLink, setDriveLink] = useState('')
   const [uploading, setUploading] = useState(false)
   const supabase = createClient()
 
@@ -21,37 +21,27 @@ export default function AdminCertificatesClient({ profile, events }: { profile: 
   const eligibleStudents = selectedEvent?.registrations || []
 
   const handleUpload = async () => {
-    if (!selectedEventId || !selectedUserId || !file) {
-      toast.error('Please select an event, a student, and a PDF certificate.')
+    if (!selectedEventId || !selectedUserId || !driveLink.trim()) {
+      toast.error('Please select an event, a student, and provide a Google Drive link.')
       return
     }
 
     setUploading(true)
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${selectedUserId}_${selectedEventId}_${Math.random()}.${fileExt}`
-    const filePath = `${profile.org}/${fileName}`
 
     try {
-      // 1. Upload file to storage
-      const { error: uploadError } = await supabase.storage
-        .from('certificates')
-        .upload(filePath, file)
-      
-      if (uploadError) throw uploadError
-
       // 2. Insert into DB
       const { error: dbError } = await supabase.from('certificates').insert({
         user_id: selectedUserId,
         event_id: selectedEventId,
         title: `Certificate: ${selectedEvent?.title}`,
-        storage_path: filePath,
+        storage_path: driveLink, // Storing the Google Drive link instead of a bucket path
       })
 
       if (dbError) throw dbError
 
-      toast.success('Certificate uploaded and sent to student!')
+      toast.success('Certificate link attached and sent to student!')
       setSelectedUserId('')
-      setFile(null)
+      setDriveLink('')
     } catch (err: any) {
       toast.error(err.message || 'Upload failed.')
     } finally {
@@ -63,7 +53,7 @@ export default function AdminCertificatesClient({ profile, events }: { profile: 
     <div className="flex-1 flex flex-col">
       <TopBar profile={profile} title={`${profile.org} Certificate Center`} />
       <main className="flex-1 px-4 md:px-6 py-6">
-        <h2 className="text-xl font-bold font-display mb-6">Upload Certificates</h2>
+        <h2 className="text-xl font-bold font-display mb-6">Attach Certificates (Google Drive)</h2>
         
         <Card className="max-w-2xl p-6">
           <div className="space-y-5">
@@ -101,31 +91,18 @@ export default function AdminCertificatesClient({ profile, events }: { profile: 
               </motion.div>
             )}
 
-            {/* File Upload */}
+            {/* Google Drive Link */}
             {selectedUserId && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">3. Upload PDF</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">3. Provide Google Drive Link</label>
                 
-                <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-8 text-center hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                  <input 
-                    type="file" 
-                    accept=".pdf,image/*" 
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  />
-                  {file ? (
-                    <div className="flex flex-col items-center gap-2 text-green-500">
-                      <CheckCircle className="h-8 w-8" />
-                      <p className="font-semibold text-sm">{file.name}</p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 text-gray-400">
-                      <Upload className="h-8 w-8 mb-1" />
-                      <p className="font-medium text-sm">Click or drag certificate here</p>
-                      <p className="text-xs">PDF or Image format</p>
-                    </div>
-                  )}
-                </div>
+                <input 
+                  type="url"
+                  value={driveLink}
+                  onChange={(e) => setDriveLink(e.target.value)}
+                  placeholder="https://drive.google.com/file/d/..."
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                 />
               </motion.div>
             )}
 
@@ -135,9 +112,9 @@ export default function AdminCertificatesClient({ profile, events }: { profile: 
                 variant={profile.org === 'NSS' ? 'nss' : 'yrc'} 
                 onClick={handleUpload} 
                 loading={uploading} 
-                disabled={!selectedEventId || !selectedUserId || !file}
+                disabled={!selectedEventId || !selectedUserId || !driveLink.trim()}
               >
-                Issue Certificate <Award className="h-4 w-4 ml-2" />
+                Attach Link <Award className="h-4 w-4 ml-2" />
               </Button>
             </div>
 
