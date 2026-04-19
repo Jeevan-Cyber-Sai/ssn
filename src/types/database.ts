@@ -33,6 +33,7 @@ export interface Event {
   seats_filled: number
   hours: number
   image_url?: string
+  tags?: string[]
   is_active: boolean
   created_by?: string
   created_at: string

@@ -140,6 +140,16 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
             <div className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 flex-shrink-0" />{seatsLeft} / {event.seats} seats</div>
           </div>
 
+          {event.tags && event.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {event.tags.map((tag, i) => (
+                <span key={i} className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
           {/* Seat bar */}
           <div className="mb-4">
             <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
