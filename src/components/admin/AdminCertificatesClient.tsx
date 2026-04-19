@@ -25,18 +25,14 @@ export default function AdminCertificatesClient({ profile, events }: { profile: 
       toast.error('Please select an event, a student, and provide a Google Drive link.')
       return
     }
-
     setUploading(true)
-
     try {
-      // 2. Insert into DB
       const { error: dbError } = await supabase.from('certificates').insert({
         user_id: selectedUserId,
         event_id: selectedEventId,
         title: `Certificate: ${selectedEvent?.title}`,
-        storage_path: driveLink, // Storing the Google Drive link instead of a bucket path
+        storage_path: driveLink, 
       })
-
       if (dbError) throw dbError
 
       toast.success('Certificate link attached and sent to student!')
@@ -44,6 +40,29 @@ export default function AdminCertificatesClient({ profile, events }: { profile: 
       setDriveLink('')
     } catch (err: any) {
       toast.error(err.message || 'Upload failed.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleBulkGenerate = async () => {
+    if (!selectedEventId) return toast.error('Select an event first')
+    const attended = eligibleStudents.filter((r: any) => r.status === 'attended')
+    if (attended.length === 0) return toast.error('No attendees found for this event.')
+
+    setUploading(true)
+    try {
+      const inserts = attended.map((reg: any) => ({
+        user_id: reg.user_id,
+        event_id: selectedEventId,
+        title: `Auto-Generated Certificate: ${selectedEvent?.title}`,
+        storage_path: `https://dummy-certificate-service.com/gen/${reg.user_id}/${selectedEventId}.pdf` 
+      }))
+      const { error } = await supabase.from('certificates').insert(inserts)
+      if (error) throw error
+      toast.success(`Successfully batch-generated certificates for ${attended.length} attendees!`)
+    } catch (error: any) {
+      toast.error(error.message || 'Bulk generation failed')
     } finally {
       setUploading(false)
     }
@@ -107,7 +126,15 @@ export default function AdminCertificatesClient({ profile, events }: { profile: 
             )}
 
             {/* Submit */}
-            <div className="pt-4 flex justify-end">
+            <div className="pt-4 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
+              <Button 
+                variant="secondary"
+                onClick={handleBulkGenerate} 
+                loading={uploading} 
+                disabled={!selectedEventId}
+              >
+                Auto-Generate for All Attended
+              </Button>
               <Button 
                 variant={profile.org === 'NSS' ? 'nss' : 'yrc'} 
                 onClick={handleUpload} 

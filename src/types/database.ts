@@ -1,5 +1,5 @@
 export type OrgType = 'NSS' | 'YRC'
-export type RegStatus = 'registered' | 'attended'
+export type RegStatus = 'registered' | 'attended' | 'waitlisted'
 export type UserRole = 'student' | 'admin'
 
 export interface Profile {
@@ -93,6 +93,12 @@ export interface EventMessage {
   event_id: string
   user_id: string
   content: string
+  image_url?: string
+  is_pinned?: boolean
+  channel?: 'general' | 'announcements'
+  reply_to_id?: string
+  reactions?: Record<string, string[]>
+  is_deleted?: boolean
   created_at: string
   user?: Partial<Profile>
 }

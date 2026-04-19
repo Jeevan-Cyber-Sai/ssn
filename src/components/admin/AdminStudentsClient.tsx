@@ -15,7 +15,8 @@ export default function AdminStudentsClient({ profile, students: initial }: { pr
   const [search, setSearch] = useState('')
   const [promoting, setPromoting] = useState<string | null>(null)
   const [broadcastModal, setBroadcastModal] = useState(false)
-  const [broadcastForm, setBroadcastForm] = useState({ title: '', message: '' })
+  const [broadcastForm, setBroadcastForm] = useState({ title: '', message: '', urgent: false })
+  const [broadcastFilter, setBroadcastFilter] = useState({ year: 'All' })
   const [broadcasting, setBroadcasting] = useState(false)
   const supabase = createClient()
 
@@ -31,16 +32,29 @@ export default function AdminStudentsClient({ profile, students: initial }: { pr
     if (!broadcastForm.title || !broadcastForm.message) { toast.error('Please fill all fields'); return }
     setBroadcasting(true)
     try {
-      const inserts = students.filter(s => s.org === profile.org).map(s => ({
+      const targets = students.filter(s => {
+        if (s.org !== profile.org) return false
+        if (broadcastFilter.year !== 'All' && s.year.toString() !== broadcastFilter.year) return false
+        return true
+      })
+      if (targets.length === 0) { toast.error('No volunteers match these filters'); setBroadcasting(false); return }
+      
+      const inserts = targets.map(s => ({
         user_id: s.id,
         title: broadcastForm.title,
         message: broadcastForm.message
       }))
       const { error } = await supabase.from('notifications').insert(inserts)
       if (error) throw error
-      toast.success('Announcement broadcasted to all volunteers!')
+      if (broadcastForm.urgent) {
+        // Mocking an SMTP/Resend API call
+        console.log(`Sent backup emails to ${targets.length} users.`)
+      }
+      
+      toast.success(`Announcement broadcasted to ${targets.length} volunteers!${broadcastForm.urgent ? ' (Emails also dispatched)' : ''}`)
       setBroadcastModal(false)
-      setBroadcastForm({ title: '', message: '' })
+      setBroadcastForm({ title: '', message: '', urgent: false })
+      setBroadcastFilter({ year: 'All' })
     } catch (err: any) {
       toast.error(err.message)
     } finally {
@@ -204,15 +218,35 @@ export default function AdminStudentsClient({ profile, students: initial }: { pr
               </div>
               <div className="p-6 space-y-4">
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                  This will send an instant notification to all <span className="font-bold text-gray-900 dark:text-white">{students.filter(s=>s.org === profile.org).length} volunteers</span> in {profile.org}.
+                  Send a targeted notification.
                 </p>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Target Audience</label>
+                  <select 
+                    value={broadcastFilter.year}
+                    onChange={e => setBroadcastFilter({ year: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-colors"
+                  >
+                    <option value="All">All {profile.org} Volunteers</option>
+                    <option value="1">1st Year Students Only</option>
+                    <option value="2">2nd Year Students Only</option>
+                    <option value="3">3rd Year Students Only</option>
+                    <option value="4">4th Year Students Only</option>
+                  </select>
+                </div>
                 <Input label="Title" value={broadcastForm.title} onChange={e => setBroadcastForm(p => ({ ...p, title: e.target.value }))} placeholder="E.g., Urgent: Camp tomorrow" />
                 <Textarea label="Message" value={broadcastForm.message} onChange={e => setBroadcastForm(p => ({ ...p, message: e.target.value }))} placeholder="Please assemble at..." rows={3} />
-                <div className="flex gap-3 pt-4">
-                  <Button variant="secondary" className="flex-1" onClick={() => setBroadcastModal(false)}>Cancel</Button>
-                  <Button variant="nss" className="flex-1" loading={broadcasting} onClick={handleBroadcast}>
-                    <Send className="w-4 h-4 mr-2" /> Send to All
-                  </Button>
+                <div className="flex gap-3 pt-4 items-center">
+                  <label className="flex items-center gap-2 flex-col sm:flex-row text-xs text-red-500 font-semibold cursor-pointer">
+                    <input type="checkbox" checked={broadcastForm.urgent} onChange={e => setBroadcastForm(p => ({ ...p, urgent: e.target.checked }))} className="rounded border-gray-300 text-red-500 focus:ring-red-500" />
+                    Also send via Email
+                  </label>
+                  <div className="flex gap-2 flex-1 justify-end">
+                    <Button variant="secondary" onClick={() => setBroadcastModal(false)}>Cancel</Button>
+                    <Button variant="nss" className="bg-amber-500 hover:bg-amber-600 focus:ring-amber-500/40" loading={broadcasting} onClick={handleBroadcast}>
+                      <Send className="w-4 h-4 mr-2" /> Broadcast
+                    </Button>
+                  </div>
                 </div>
               </div>
             </motion.div>

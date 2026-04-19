@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, Clock, Users, CalendarDays, ChevronDown, ChevronUp, MessageSquare, Star, X } from 'lucide-react'
+import { MapPin, Clock, Users, CalendarDays, ChevronDown, ChevronUp, MessageSquare, Star, X, Calendar as CalendarIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card, Badge, Textarea } from '@/components/ui/index'
 import Button from '@/components/ui/Button'
@@ -32,19 +32,39 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
 
   const handleRegister = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (isRegistered || isFull || isPast) return
+    if (isRegistered || isPast) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { toast.error('Please sign in first'); setLoading(false); return }
 
-    const { error } = await supabase.from('registrations').insert({ user_id: user.id, event_id: event.id })
+    const statusToInsert = isFull ? 'waitlisted' : 'registered'
+
+    const { error } = await supabase.from('registrations').insert({ user_id: user.id, event_id: event.id, status: statusToInsert })
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success('Successfully registered! 🎉')
+      if (isFull) {
+        toast.success('Added to waitlist! We will notify you if a spot opens up.')
+      } else {
+        toast.success('Successfully registered! 🎉')
+      }
       onRegister?.()
     }
     setLoading(false)
+  }
+
+  const handleCalendarExport = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const start = new Date(event.date).toISOString().replace(/-|:|\.\d+/g, '')
+    const end = event.end_date ? new Date(event.end_date).toISOString().replace(/-|:|\.\d+/g, '') : start
+    const icsString = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${event.title}\nDTSTART:${start}\nDTEND:${end}\nLOCATION:${event.location || ''}\nDESCRIPTION:${event.description || ''}\nEND:VEVENT\nEND:VCALENDAR`
+    const blob = new Blob([icsString], { type: 'text/calendar;charset=utf-8' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${event.title.replace(/\s+/g, '_')}.ics`
+    a.click()
+    window.URL.revokeObjectURL(url)
   }
 
   const handleFeedbackSubmit = () => {
@@ -155,6 +175,9 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
                 <Button variant="secondary" size="sm" disabled className="w-full">
                   ✓ Registered
                 </Button>
+                <Button variant="secondary" size="sm" onClick={handleCalendarExport} className="w-full gap-2">
+                  <CalendarIcon className="h-4 w-4" /> Add to Calendar
+                </Button>
                 <Button 
                   variant={event.event_type === 'NSS' ? 'nss' : 'yrc'} 
                   size="sm" 
@@ -168,12 +191,11 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
               <Button
                 variant={event.event_type === 'NSS' ? 'nss' : 'yrc'}
                 size="sm"
-                disabled={isFull}
                 loading={loading}
                 onClick={handleRegister}
                 className="w-full"
               >
-                {isFull ? 'Event Full' : 'Quick Register'}
+                {isFull ? 'Join Waitlist' : 'Quick Register'}
               </Button>
             )
           ) : (
