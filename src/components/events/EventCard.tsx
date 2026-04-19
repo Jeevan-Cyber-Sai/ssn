@@ -7,6 +7,7 @@ import { Card, Badge, Textarea } from '@/components/ui/index'
 import Button from '@/components/ui/Button'
 import { formatDateTime, getSeatsPercent, cn, isEventPast } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import type { Event } from '@/types/database'
 
 interface EventCardProps {
@@ -23,6 +24,7 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
   const [feedbackRating, setFeedbackRating] = useState(0)
   const [feedbackComment, setFeedbackComment] = useState('')
   const supabase = createClient()
+  const router = useRouter()
 
   const isRegistered = registeredIds.includes(event.id)
   const isFull = event.seats_filled >= event.seats
@@ -192,7 +194,7 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
                   variant={event.event_type === 'NSS' ? 'nss' : 'yrc'} 
                   size="sm" 
                   className="w-full gap-2"
-                  onClick={(e) => { e.stopPropagation(); window.location.href = `/events/${event.id}/chat` }}
+                  onClick={(e) => { e.stopPropagation(); router.push(`/events/${event.id}/chat`) }}
                 >
                   <Users className="h-4 w-4" /> Group Discussion
                 </Button>

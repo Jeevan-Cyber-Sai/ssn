@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { Plus, Edit2, Trash2, X, Save, CalendarDays, MapPin, Users, Clock, QrCode, Copy, Image as ImageIcon, Camera, Loader2, CheckCircle, RefreshCcw, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import TopBar from '@/components/shared/TopBar'
 import { Card, Badge, Skeleton, Switch } from '@/components/ui/index'
 import { Input, Select, Textarea } from '@/components/ui/index'
@@ -18,6 +19,7 @@ const emptyForm = {
 }
 
 export default function AdminEventsClient({ profile, initialEvents }: { profile: Profile; initialEvents: Event[] }) {
+  const router = useRouter()
   const [events, setEvents] = useState<Event[]>(initialEvents)
   const [modal, setModal] = useState<'create' | 'edit' | null>(null)
   const [editTarget, setEditTarget] = useState<Event | null>(null)
@@ -220,6 +222,11 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
                             title="Check-In QR"
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-500 hover:text-emerald-600 transition-colors">
                             <QrCode className="h-4 w-4" />
+                          </button>
+                          <button onClick={() => router.push(`/admin/events/${ev.id}/chat`)}
+                            title="Group Discussion"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-600 transition-colors">
+                            <Users className="h-4 w-4" />
                           </button>
                           <button onClick={() => cloneEvent(ev)}
                             title="Clone Event"
