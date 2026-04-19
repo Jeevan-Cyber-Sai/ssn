@@ -15,6 +15,8 @@ export interface Profile {
   role: UserRole
   avatar_url?: string
   total_hours: number
+  blood_group?: string
+  is_blood_donor?: boolean
   created_at: string
   updated_at: string
 }

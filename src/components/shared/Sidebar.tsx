@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, CalendarDays, User, Award, Trophy,
-  LogOut, Shield, ChevronLeft, ChevronRight, Menu, X
+  LogOut, Shield, ChevronLeft, ChevronRight, Menu, X, BookOpen
 } from 'lucide-react'
 import { cn, orgGradient } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -19,6 +19,7 @@ const navItems = [
   { href: '/events', label: 'Events', icon: CalendarDays },
   { href: '/profile', label: 'My Profile', icon: User },
   { href: '/certificates', label: 'Certificates', icon: Award },
+  { href: '/resources', label: 'Resources Hub', icon: BookOpen },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
 ]
 

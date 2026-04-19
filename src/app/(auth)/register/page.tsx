@@ -25,6 +25,7 @@ function RegisterForm() {
   const [form, setForm] = useState({
     name: '', email: '', password: '', confirmPassword: '',
     department: '', year: '1', rollNumber: '', phone: '',
+    bloodGroup: '', isBloodDonor: false,
     org: preselectedOrg || '' as 'NSS' | 'YRC' | '',
   })
 
@@ -77,6 +78,8 @@ function RegisterForm() {
         year: parseInt(form.year),
         roll_number: form.rollNumber || null,
         phone: form.phone || null,
+        blood_group: form.bloodGroup || null,
+        is_blood_donor: form.isBloodDonor,
         org: form.org,
         org_locked: true,
         role: 'student',
@@ -154,6 +157,19 @@ function RegisterForm() {
                   {YEARS.map(y => <option key={y} value={y}>Year {y}</option>)}
                 </Select>
                 <Input label="Roll Number (optional)" value={form.rollNumber} onChange={e => set('rollNumber', e.target.value)} placeholder="21CS001" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Select label="Blood Group (Optional)" value={form.bloodGroup} onChange={e => set('bloodGroup', e.target.value)}>
+                  <option value="">Select</option>
+                  {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg} value={bg}>{bg}</option>)}
+                </Select>
+                <div className="flex items-center mt-6">
+                  <label className="flex items-center gap-2 cursor-pointer group w-full">
+                    <input type="checkbox" checked={form.isBloodDonor} onChange={e => set('isBloodDonor', e.target.checked as any)}
+                      className="w-4 h-4 rounded border-gray-300 accent-red-500 cursor-pointer" />
+                    <span className="text-xs text-gray-700 dark:text-gray-300">Willing to be a blood donor</span>
+                  </label>
+                </div>
               </div>
               <Input label="Phone (optional)" type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+91 98765 43210" />
             </motion.div>

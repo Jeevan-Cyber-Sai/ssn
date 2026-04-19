@@ -59,6 +59,39 @@ export default function DashboardClient({ profile, upcomingEvents, recentRegistr
           </motion.div>
         </motion.div>
 
+        {/* Volunteer Hours Tracker */}
+        <motion.div variants={stagger.item} initial="hidden" animate="show" className="mt-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="font-bold font-display text-gray-900 dark:text-white flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-emerald-500" />
+                  Your Service Journey
+                </h3>
+                <p className="text-sm text-gray-500">Progress towards your 120-hour certificate goal.</p>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-extrabold">{profile.total_hours}</span>
+                <span className="text-sm font-semibold text-gray-500 dark:text-gray-400"> / 120 hrs</span>
+              </div>
+            </div>
+            <div className="h-4 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mt-4 relative">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min((profile.total_hours / 120) * 100, 100)}%` }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+                className={cn('h-full rounded-full', profile.total_hours >= 120 ? 'bg-emerald-500' : 'bg-gradient-to-r from-red-500 to-orange-500')}
+              />
+              <div className="absolute top-0 right-0 h-full w-[2px] bg-red-800/10 dark:bg-red-200/10" style={{ left: '100%' }} />
+            </div>
+            {profile.total_hours >= 120 && (
+              <p className="text-xs font-bold text-emerald-500 mt-3 flex items-center gap-1">
+                <CheckCircle className="w-3.5 h-3.5" /> Goal Achieved! You are eligible for certification.
+              </p>
+            )}
+          </Card>
+        </motion.div>
+
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Upcoming Events */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-2 space-y-3">

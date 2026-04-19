@@ -1,11 +1,11 @@
 'use client'
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-import { Search, Users, Shield, ShieldOff, Mail, BookOpen } from 'lucide-react'
+import { Search, Users, Shield, ShieldOff, Mail, BookOpen, Download, Megaphone, X, Send } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import TopBar from '@/components/shared/TopBar'
-import { Card, Badge } from '@/components/ui/index'
+import { Card, Badge, Input, Textarea } from '@/components/ui/index'
 import Button from '@/components/ui/Button'
 import { formatDate } from '@/lib/utils'
 import type { Profile } from '@/types/database'
@@ -14,6 +14,9 @@ export default function AdminStudentsClient({ profile, students: initial }: { pr
   const [students, setStudents] = useState<Profile[]>(initial)
   const [search, setSearch] = useState('')
   const [promoting, setPromoting] = useState<string | null>(null)
+  const [broadcastModal, setBroadcastModal] = useState(false)
+  const [broadcastForm, setBroadcastForm] = useState({ title: '', message: '' })
+  const [broadcasting, setBroadcasting] = useState(false)
   const supabase = createClient()
 
   const filtered = students.filter(s => {
@@ -23,6 +26,43 @@ export default function AdminStudentsClient({ profile, students: initial }: { pr
       s.department.toLowerCase().includes(search.toLowerCase())
     return matchSearch
   })
+
+  const handleBroadcast = async () => {
+    if (!broadcastForm.title || !broadcastForm.message) { toast.error('Please fill all fields'); return }
+    setBroadcasting(true)
+    try {
+      const inserts = students.filter(s => s.org === profile.org).map(s => ({
+        user_id: s.id,
+        title: broadcastForm.title,
+        message: broadcastForm.message
+      }))
+      const { error } = await supabase.from('notifications').insert(inserts)
+      if (error) throw error
+      toast.success('Announcement broadcasted to all volunteers!')
+      setBroadcastModal(false)
+      setBroadcastForm({ title: '', message: '' })
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setBroadcasting(false)
+    }
+  }
+
+  const handleExportCSV = () => {
+    const headers = 'Name,Email,Department,Year,Roll Number,Phone,Blood Group,Total Hours,Joined\n'
+    const csvData = students.map(s => 
+      `"${s.name}","${s.email}","${s.department}",${s.year},"${s.roll_number || ''}","${s.phone || ''}","${s.blood_group || ''}",${s.total_hours},"${formatDate(s.created_at)}"`
+    ).join('\n')
+    
+    const blob = new Blob([headers + csvData], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${profile.org}_Students_Report.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
 
   const handleToggleAdmin = async (student: Profile) => {
     const newRole = student.role === 'admin' ? 'student' : 'admin'
@@ -45,6 +85,14 @@ export default function AdminStudentsClient({ profile, students: initial }: { pr
           <div>
             <h2 className="text-xl font-bold font-display">{profile.org} Volunteers</h2>
             <p className="text-sm text-gray-500">{filtered.length} of {students.length} students</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="secondary" onClick={() => setBroadcastModal(true)} className="hidden sm:flex bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-500">
+              <Megaphone className="w-4 h-4 mr-2" /> Broadcast
+            </Button>
+            <Button variant="secondary" onClick={handleExportCSV} className="hidden sm:flex">
+              <Download className="w-4 h-4 mr-2" /> Export CSV Report
+            </Button>
           </div>
         </div>
 
@@ -136,6 +184,41 @@ export default function AdminStudentsClient({ profile, students: initial }: { pr
           )}
         </Card>
       </main>
+      {/* Broadcast Modal */}
+      <AnimatePresence>
+        {broadcastModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setBroadcastModal(false)}>
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800 bg-amber-50 dark:bg-amber-900/20">
+                <h3 className="text-lg font-bold font-display flex items-center gap-2 text-amber-700 dark:text-amber-500">
+                  <Megaphone className="w-5 h-5" /> Broadcast Announcement
+                </h3>
+                <button onClick={() => setBroadcastModal(false)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white/50 text-gray-500 transition-colors">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                  This will send an instant notification to all <span className="font-bold text-gray-900 dark:text-white">{students.filter(s=>s.org === profile.org).length} volunteers</span> in {profile.org}.
+                </p>
+                <Input label="Title" value={broadcastForm.title} onChange={e => setBroadcastForm(p => ({ ...p, title: e.target.value }))} placeholder="E.g., Urgent: Camp tomorrow" />
+                <Textarea label="Message" value={broadcastForm.message} onChange={e => setBroadcastForm(p => ({ ...p, message: e.target.value }))} placeholder="Please assemble at..." rows={3} />
+                <div className="flex gap-3 pt-4">
+                  <Button variant="secondary" className="flex-1" onClick={() => setBroadcastModal(false)}>Cancel</Button>
+                  <Button variant="nss" className="flex-1" loading={broadcasting} onClick={handleBroadcast}>
+                    <Send className="w-4 h-4 mr-2" /> Send to All
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

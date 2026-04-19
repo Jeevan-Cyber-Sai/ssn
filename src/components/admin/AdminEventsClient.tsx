@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-import { Plus, Edit2, Trash2, X, Save, CalendarDays, MapPin, Users, Clock } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Save, CalendarDays, MapPin, Users, Clock, QrCode } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import TopBar from '@/components/shared/TopBar'
 import { Card, Badge, Skeleton } from '@/components/ui/index'
@@ -20,6 +20,7 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
   const [events, setEvents] = useState<Event[]>(initialEvents)
   const [modal, setModal] = useState<'create' | 'edit' | null>(null)
   const [editTarget, setEditTarget] = useState<Event | null>(null)
+  const [qrTarget, setQrTarget] = useState<Event | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -134,6 +135,11 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => setQrTarget(ev)}
+                            title="Show QR Code for Attendance"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-500 hover:text-emerald-600 transition-colors">
+                            <QrCode className="h-4 w-4" />
+                          </button>
                           <button onClick={() => window.location.href = `/admin/events/${ev.id}/chat`}
                             title="Group Discussion"
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-600 transition-colors">
@@ -198,6 +204,36 @@ export default function AdminEventsClient({ profile, initialEvents }: { profile:
                   </Button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* QR Code Modal for Event Check-in */}
+      <AnimatePresence>
+        {qrTarget && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            onClick={() => setQrTarget(null)}>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center relative"
+              onClick={e => e.stopPropagation()}>
+              <button onClick={() => setQrTarget(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+              <h3 className="text-xl font-bold font-display mb-1">Scan to Check-In</h3>
+              <p className="text-sm text-gray-500 mb-6 truncate">{qrTarget.title}</p>
+              
+              <div className="bg-white p-4 rounded-2xl mx-auto inline-block border border-gray-100 shadow-sm mb-6">
+                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(typeof window !== 'undefined' ? `${window.location.origin}/check-in/${qrTarget.id}` : '')}`} 
+                     alt="Event Check-in QR" className="w-48 h-48"
+                     crossOrigin="anonymous" />
+              </div>
+              
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Ask students to scan this code with their phone camera to instantly log and verify their attendance.
+              </p>
             </motion.div>
           </motion.div>
         )}

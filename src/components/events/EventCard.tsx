@@ -1,9 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { MapPin, Clock, Users, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { MapPin, Clock, Users, CalendarDays, ChevronDown, ChevronUp, MessageSquare, Star, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { Card, Badge } from '@/components/ui/index'
+import { Card, Badge, Textarea } from '@/components/ui/index'
 import Button from '@/components/ui/Button'
 import { formatDateTime, getSeatsPercent, cn, isEventPast } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -19,6 +19,9 @@ interface EventCardProps {
 export default function EventCard({ event, compact = false, registeredIds = [], onRegister }: EventCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [feedbackRating, setFeedbackRating] = useState(0)
+  const [feedbackComment, setFeedbackComment] = useState('')
   const supabase = createClient()
 
   const isRegistered = registeredIds.includes(event.id)
@@ -42,6 +45,13 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
       onRegister?.()
     }
     setLoading(false)
+  }
+
+  const handleFeedbackSubmit = () => {
+    if (feedbackRating === 0) { toast.error('Please select a rating'); return }
+    // Mock storing feedback
+    toast.success('Thank you! Your feedback helps us improve future events.')
+    setFeedbackOpen(false)
   }
 
   const orgColor = event.event_type === 'NSS' ? 'nss' : 'yrc'
@@ -139,7 +149,7 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
           )}
 
           {/* Action */}
-          {!isPast && (
+          {!isPast ? (
             isRegistered ? (
               <div className="flex flex-col gap-2">
                 <Button variant="secondary" size="sm" disabled className="w-full">
@@ -166,9 +176,63 @@ export default function EventCard({ event, compact = false, registeredIds = [], 
                 {isFull ? 'Event Full' : 'Quick Register'}
               </Button>
             )
+          ) : (
+            isRegistered && (
+              <Button variant="secondary" size="sm" onClick={() => setFeedbackOpen(true)} className="w-full gap-2 bg-purple-50 text-purple-600 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-400">
+                <MessageSquare className="h-4 w-4" /> Give Feedback
+              </Button>
+            )
           )}
         </div>
       </Card>
+
+      {/* Feedback Modal */}
+      <AnimatePresence>
+        {feedbackOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setFeedbackOpen(false)}>
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative"
+              onClick={e => e.stopPropagation()}>
+              <button onClick={() => setFeedbackOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+              
+              <div className="p-8 pb-6 text-center border-b border-gray-100 dark:border-gray-800">
+                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Star className="h-8 w-8 text-purple-500 fill-current" />
+                </div>
+                <h3 className="text-xl font-bold font-display text-gray-900 dark:text-white mb-2">How was the event?</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{event.title}</p>
+              </div>
+
+              <div className="p-8 pt-6 space-y-6">
+                <div className="flex justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} onClick={() => setFeedbackRating(star)}
+                      className={`transition-colors ${feedbackRating >= star ? 'text-purple-500' : 'text-gray-200 dark:text-gray-700 hover:text-purple-300'}`}>
+                      <Star className={`w-8 h-8 ${feedbackRating >= star ? 'fill-current' : ''}`} />
+                    </button>
+                  ))}
+                </div>
+                
+                <Textarea 
+                  placeholder="Tell us what you liked or how we can improve..." 
+                  rows={4} 
+                  value={feedbackComment} 
+                  onChange={e => setFeedbackComment(e.target.value)} 
+                />
+
+                <Button variant="secondary" className="w-full bg-purple-500 text-white hover:bg-purple-600" onClick={handleFeedbackSubmit}>
+                  Submit Feedback
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
