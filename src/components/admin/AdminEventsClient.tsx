@@ -6,7 +6,7 @@ import { Plus, Edit2, Trash2, X, Save, CalendarDays, MapPin, Users, Clock, QrCod
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import TopBar from '@/components/shared/TopBar'
-import { Card, Badge, Skeleton, Switch } from '@/components/ui/index'
+import { Card, Badge, Skeleton } from '@/components/ui/index'
 import { Input, Select, Textarea } from '@/components/ui/index'
 import Button from '@/components/ui/Button'
 import { formatDateTime, isEventPast, cn } from '@/lib/utils'
